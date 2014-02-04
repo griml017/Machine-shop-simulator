@@ -2,12 +2,12 @@ package applications;
 
 public  class EventList {
 	
-	public static final String NUMBER_OF_MACHINES_MUST_BE_AT_LEAST_1 = "number of machines must be >= 1";
+	public static final String atLeastOne = "number of machines must be >= 1";
     int[] finishTime;
 
     public EventList(int theNumMachines, int theLargeTime) {// initialize finish times for m machines
         if (theNumMachines < 1)
-            throw new IllegalArgumentException(NUMBER_OF_MACHINES_MUST_BE_AT_LEAST_1);
+            throw new IllegalArgumentException(atLeastOne);
         finishTime = new int[theNumMachines + 1];
 
         // all machines are idle, initialize with large finish time
