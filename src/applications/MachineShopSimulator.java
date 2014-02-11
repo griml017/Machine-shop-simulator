@@ -14,12 +14,12 @@ public class MachineShopSimulator {
     public static final String oneTask = "each job must have >= 1 task";
     public static final String badMachineTask = "bad machine number or task time";
     
-    private static int timeNow; // current time
+    static int timeNow; // current time
     private static int numMachines; // number of machines
     private static int numJobs; // number of jobs
-    private static EventList eList; // pointer to event list
-    private static Machine[] machine; // array of machines
-    private static int largeTime; // all machines finish before this
+    static EventList eList; // pointer to event list
+    static Machine[] machine; // array of machines
+    static int largeTime; // all machines finish before this
 
     // methods
     /**
@@ -40,48 +40,11 @@ public class MachineShopSimulator {
             theJob.setArrivalTime(timeNow);
             // if p idle, schedule immediately
             if (eList.nextEventTime(p) == largeTime) {// machine is idle
-                changeState(p);
+                Machine.changeState(p);
             }
             return true;
         }
     }
-
-    /**
-     * change the state of theMachine
-     * 
-     * @return last job run on this machine
-     */
-    static Job changeState(int theMachine) {// Task on theMachine has finished, schedule next one.
-        Job lastJob;
-        if (machine[theMachine].activeJob == null) {// in idle or change-over state
-            lastJob = changeOver(theMachine);
-        } else {// task has just finished on machine[theMachine]
-                // schedule change-over time
-            lastJob = machine[theMachine].activeJob;
-            machine[theMachine].activeJob = null;
-            eList.setFinishTime(theMachine, timeNow
-                    + machine[theMachine].changeTime);
-        }
-
-        return lastJob;
-    }
-
-	private static Job changeOver(int theMachine) {
-		Job lastJob;
-		lastJob = null;
-		if (machine[theMachine].jobQ.isEmpty()) 
-		    eList.setFinishTime(theMachine, largeTime);
-		else {// take job off the queue and work on it
-		    machine[theMachine].activeJob = (Job) machine[theMachine].jobQ
-		            .remove();
-		    machine[theMachine].totalWait += timeNow
-		            - machine[theMachine].activeJob.getArrivalTime();
-		    machine[theMachine].numTasks++;
-		    int t = machine[theMachine].activeJob.removeNextTask();
-		    eList.setFinishTime(theMachine, timeNow + t);
-		}
-		return lastJob;
-	}
 
     /** input machine shop data */
     static void inputData() {
@@ -96,12 +59,12 @@ public class MachineShopSimulator {
 
         // create event and machine queues
         eList = new EventList(numMachines, largeTime);
-        machine = new Machine[numMachines + 1];
-        for (int i = 1; i <= numMachines; i++)
+        machine = new Machine[numMachines];
+        for (int i = 0; i <= numMachines; i++)
             machine[i] = new Machine();
 
         System.out.println("Enter change-over times for machines");
-        for (int j = 1; j <= numMachines; j++) {
+        for (int j = 0; j <= numMachines; j++) {
             int ct = keyboard.readInteger();
             if (ct < 0)
                 throw new MyInputException(atLeastZero);
@@ -115,8 +78,8 @@ public class MachineShopSimulator {
 
 	private static void inputJob(MyInputStream keyboard) {
 		Job job;
-		for (int i = 1; i <= numJobs; i++) {
-            System.out.println("Enter number of tasks for job " + i);
+		for (int i = 0; i <= numJobs; i++) {
+            System.out.println("Enter number of tasks for job " + i + 1);
             int tasks = keyboard.readInteger(); // number of tasks
             int firstMachine = 0; // machine for first task
             if (tasks < 1)
@@ -133,7 +96,7 @@ public class MachineShopSimulator {
 
 	private static int processOrder(MyInputStream keyboard, Job job, int tasks,
 			int firstMachine) {
-		for (int j = 1; j <= tasks; j++) {
+		for (int j = 0; j <= tasks; j++) {
 		    int theMachine = keyboard.readInteger();
 		    int theTaskTime = keyboard.readInteger();
 		    if (theMachine < 1 || theMachine > numMachines
@@ -149,7 +112,7 @@ public class MachineShopSimulator {
     // load first jobs onto each machine 
     static void startShop() {
         for (int p = 1; p <= numMachines; p++)
-            changeState(p);
+            Machine.changeState(p);
     }
 
     //process all jobs to completion
@@ -157,7 +120,7 @@ public class MachineShopSimulator {
         while (numJobs > 0) {
             int nextToFinish = eList.nextEventMachine();
             timeNow = eList.nextEventTime(nextToFinish);
-            Job theJob = changeState(nextToFinish);
+            Job theJob = Machine.changeState(nextToFinish);
             // move theJob to its next machine, decrement numJobs if theJob has finished
             if (theJob != null && !nextMachine(theJob))
                 numJobs--;
